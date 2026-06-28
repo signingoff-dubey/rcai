@@ -1,0 +1,29 @@
+node_modules/
+dist/
+.vite/
+__pycache__/
+*.pyc
+.env
+backend/uploads/*
+!backend/uploads/.gitkeep
+*.egg-info/
+.venv/
+venv/
+.DS_Store
+*.log
+test_vite/
+skills-*/
+
+# Generated SQLite database
+*.db
+*.db-wal
+*.db-shm
+
+# Claude Code local state (machine-specific)
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+.claude/skills/
+
+# Crash corpus dataset (large binaries — fetch separately, see README)
+dataset/*
+!dataset/.gitkeep
