@@ -1,0 +1,16 @@
+{
+  "name": "rcai",
+  "private": true,
+  "version": "1.0.0",
+  "description": "RCAi — Software Failure Root Cause Analysis Platform",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "uvicorn backend.main:app --reload --port 8000",
+    "build": "cd frontend && npm run build",
+    "install:all": "npm install && cd frontend && npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
