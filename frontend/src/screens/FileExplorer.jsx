@@ -25,10 +25,17 @@ const fileLanguageMap = {
   text: 'plaintext',
 };
 
-function LogsModal({ file, onClose }) {
+function LogsModal({ file, onClose, onDelete }) {
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(true);
   const [isBinary, setIsBinary] = useState(false);
+
+  const handleDelete = () => {
+    if (window.confirm(`Delete "${file?.name}" from the dataset? This cannot be undone.`)) {
+      onDelete?.(file);
+      onClose();
+    }
+  };
 
   useEffect(() => {
     if (!file?.id) return;
@@ -60,9 +67,19 @@ function LogsModal({ file, onClose }) {
             <h3 className="font-display text-sm font-semibold text-rcai-text-primary">{file?.name}</h3>
             {isBinary && <span className="text-xs bg-rcai-warning/20 text-rcai-warning px-2 py-0.5 rounded">BINARY</span>}
           </div>
-          <button onClick={onClose} aria-label="Close file viewer" className="text-rcai-text-muted hover:text-rcai-text-primary transition-colors">
-            <X size={18} />
-          </button>
+          <div className="flex items-center gap-2">
+            {onDelete && (
+              <button
+                onClick={handleDelete}
+                className="flex items-center gap-1.5 text-rcai-danger hover:text-red-400 border border-rcai-border hover:bg-rcai-elevated rounded-lg px-3 py-1 text-xs transition-colors"
+              >
+                <Trash2 size={14} /> Delete
+              </button>
+            )}
+            <button onClick={onClose} aria-label="Close file viewer" className="text-rcai-text-muted hover:text-rcai-text-primary transition-colors">
+              <X size={18} />
+            </button>
+          </div>
         </div>
         <div className="flex-1 overflow-hidden">
           {loading ? (
@@ -118,7 +135,7 @@ function ELFMetadataPanel({ metadata, onAnalyse, onDelete }) {
 
   return (
     <div className="space-y-4 w-full">
-      {showLogs && <LogsModal file={metadata} onClose={() => setShowLogs(false)} />}
+      {showLogs && <LogsModal file={metadata} onClose={() => setShowLogs(false)} onDelete={onDelete} />}
       <div className="flex items-center gap-2">
         <FileType size={20} className="text-rcai-accent" />
         <h3 className="font-display text-lg font-semibold text-rcai-text-primary">{metadata.name}</h3>
@@ -241,7 +258,7 @@ function PocFilePanel({ file, metadata, onPairBinary, onAnalyse, onDelete }) {
 
   return (
     <div className="space-y-4 w-full">
-      {showLogs && <LogsModal file={file} onClose={() => setShowLogs(false)} />}
+      {showLogs && <LogsModal file={file} onClose={() => setShowLogs(false)} onDelete={onDelete} />}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <FileCode size={20} className="text-rcai-accent" />
