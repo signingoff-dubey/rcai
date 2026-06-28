@@ -44,7 +44,7 @@ export const getTimeline = () => api.get('/timeline');
 
 export const getTimelineEvents = () => api.get('/timeline/events');
 
-export const lookupCVE = (cveId) => api.get(`/cve/${cveId}`);
+export const lookupCVE = (cveId, nvd = false) => api.get(`/cve/${cveId}${nvd ? '?nvd=true' : ''}`);
 
 export const listCVEs = () => api.get('/cve');
 

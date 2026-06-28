@@ -246,3 +246,8 @@ A comprehensive audit was conducted across 5 dimensions (Accessibility, Performa
 - `run.bat` — Removed SHORT_PATH, start /D, netstat health checks, rundll32 browser open
 - `.env` — Now has GROQ_API_KEY (consolidated from backend/.env)
 - `.gitignore` — Added test_vite/, skills-*/ patterns
+
+## Git History
+| Commit | Date | Message |
+|--------|------|---------|
+| 6a02527 | 2026-06-28 | Initial commit: RCAi platform (pushed to github.com/signingoff-dubey/rcai) |

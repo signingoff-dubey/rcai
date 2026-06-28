@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { Plus, Save, Trash2, Pencil } from 'lucide-react';
 import SeverityBadge from '../components/shared/SeverityBadge';
-import { getSecurityIntel, getAnalysesList, getNotes, createNote, updateNote, deleteNote } from '../api/client';
+import { getSecurityIntel, getAnalysesList, getNotes, createNote, updateNote, deleteNote, lookupCVE } from '../api/client';
 import useAppStore from '../store/useAppStore';
 
 const cvssColor = (score) => {
@@ -23,6 +23,8 @@ export default function SecurityIntel() {
   const [newNoteText, setNewNoteText] = useState('');
   const [editNoteId, setEditNoteId] = useState(null);
   const [editNoteText, setEditNoteText] = useState('');
+  const [nvd, setNvd] = useState(null);
+  const [nvdLoading, setNvdLoading] = useState(false);
 
   const storeId = useAppStore((s) => s.currentAnalysisId);
   const setCurrentAnalysisId = useAppStore((s) => s.setCurrentAnalysisId);
@@ -43,9 +45,21 @@ export default function SecurityIntel() {
 
   useEffect(() => {
     if (!analysisId) return;
+    setNvd(null);
     getSecurityIntel(analysisId).then((res) => setData(res.data)).catch(() => {});
     getNotes(analysisId).then((res) => setNotes(res.data || [])).catch(() => {});
   }, [analysisId]);
+
+  // Fetch live NVD details (published/modified dates, references) when a CVE is linked.
+  useEffect(() => {
+    const cve = data?.cve_id;
+    if (!cve) { setNvd(null); return; }
+    setNvdLoading(true);
+    lookupCVE(cve, true)
+      .then((res) => setNvd(res.data))
+      .catch(() => setNvd(null))
+      .finally(() => setNvdLoading(false));
+  }, [data?.cve_id]);
 
   const handleAddNote = async () => {
     if (!newNoteText.trim() || !analysisId) return;
@@ -101,6 +115,7 @@ export default function SecurityIntel() {
         <select
           value={analysisId || ''}
           onChange={(e) => { const id = Number(e.target.value); setAnalysisId(id); setCurrentAnalysisId(id); }}
+          aria-label="Select analysed crash"
           className="bg-rcai-elevated border border-rcai-border text-rcai-text-primary text-sm rounded-lg px-3 py-1.5 max-w-64"
         >
           {analyses.length === 0 && <option value="">No analyses</option>}
@@ -185,18 +200,57 @@ export default function SecurityIntel() {
               <BarChart data={ciaData} layout="vertical" margin={{ left: 20 }}>
                 <XAxis type="number" domain={[0, 2]} tick={{ fill: 'var(--rcai-text-secondary)', fontSize: 11 }} tickFormatter={(v) => ['None', 'Low', 'High'][v] || v} />
                 <YAxis type="category" dataKey="name" tick={{ fill: 'var(--rcai-text-secondary)', fontSize: 11 }} width={120} />
-                <Tooltip formatter={(v) => ['None', 'Low', 'High'][v] || v} />
+                <Tooltip formatter={(v) => ['None', 'Low', 'High'][v] || v} contentStyle={{ background: '#111827', border: '1px solid #1E2D45', borderRadius: 8, fontSize: 12 }} itemStyle={{ color: '#F1F5F9' }} labelStyle={{ color: '#94A3B8' }} />
                 <Bar dataKey="value" fill="#EF4444" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
 
           <div className="rounded-xl bg-rcai-card border border-rcai-border p-4">
-            <h3 className="font-display text-sm font-semibold text-rcai-text-primary mb-3">NVD Description</h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-display text-sm font-semibold text-rcai-text-primary">NVD Description</h3>
+              {nvdLoading && <span className="text-xs text-rcai-text-muted">Fetching NVD…</span>}
+            </div>
             {data?.cve_id ? (
-              <div>
-                <p className="font-display text-sm text-rcai-accent mb-2">{data.cve_id}</p>
-                <p className="text-sm text-rcai-text-secondary">{data.summary || 'No description available.'}</p>
+              <div className="space-y-3">
+                <a
+                  href={`https://nvd.nist.gov/vuln/detail/${data.cve_id}`}
+                  target="_blank" rel="noopener noreferrer"
+                  className="font-display text-sm text-rcai-accent hover:underline"
+                >
+                  {data.cve_id}
+                </a>
+                <p className="text-sm text-rcai-text-secondary">
+                  {nvd?.description || data.summary || 'No description available.'}
+                </p>
+                {(nvd?.published || nvd?.modified) && (
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    {nvd.published && (
+                      <>
+                        <span className="text-rcai-text-muted">Published</span>
+                        <span className="text-rcai-text-secondary">{new Date(nvd.published).toLocaleDateString()}</span>
+                      </>
+                    )}
+                    {nvd.modified && (
+                      <>
+                        <span className="text-rcai-text-muted">Last Modified</span>
+                        <span className="text-rcai-text-secondary">{new Date(nvd.modified).toLocaleDateString()}</span>
+                      </>
+                    )}
+                  </div>
+                )}
+                {nvd?.references?.length > 0 && (
+                  <div>
+                    <h4 className="text-xs font-semibold text-rcai-text-muted uppercase tracking-wider mb-1">References ({nvd.references.length})</h4>
+                    <div className="space-y-1 max-h-32 overflow-y-auto">
+                      {nvd.references.slice(0, 8).map((ref, i) => (
+                        <a key={i} href={ref} target="_blank" rel="noopener noreferrer" className="block text-xs text-rcai-accent hover:underline truncate">
+                          {ref}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <p className="text-sm text-rcai-text-muted">No CVE linked to this analysis.</p>
@@ -257,7 +311,7 @@ export default function SecurityIntel() {
               placeholder="Add a note about this analysis..."
               className="flex-1 bg-rcai-bg border border-rcai-border rounded-lg px-3 py-2 text-sm text-rcai-text-primary placeholder-rcai-text-muted resize-none h-20"
             />
-            <button onClick={handleAddNote} className="bg-rcai-accent hover:bg-blue-500 text-white rounded-lg px-3 py-2 text-sm transition-all self-end">
+            <button onClick={handleAddNote} aria-label="Add note" className="bg-rcai-accent hover:bg-blue-500 text-white rounded-lg px-3 py-2 text-sm transition-all self-end">
               <Plus size={16} />
             </button>
           </div>
@@ -276,7 +330,7 @@ export default function SecurityIntel() {
                       onChange={(e) => setEditNoteText(e.target.value)}
                       className="flex-1 bg-rcai-elevated border border-rcai-border rounded px-2 py-1 text-sm text-rcai-text-primary resize-none h-16"
                     />
-                    <button onClick={() => handleSaveEdit(note.id)} className="text-rcai-accent hover:text-blue-400">
+                    <button onClick={() => handleSaveEdit(note.id)} aria-label="Save note" className="text-rcai-accent hover:text-blue-400">
                       <Save size={14} />
                     </button>
                   </div>
@@ -290,11 +344,12 @@ export default function SecurityIntel() {
               <div className="flex gap-1 shrink-0">
                 <button
                   onClick={() => { setEditNoteId(note.id); setEditNoteText(note.note); }}
+                  aria-label="Edit note"
                   className="text-rcai-text-muted hover:text-rcai-text-secondary"
                 >
                   <Pencil size={14} />
                 </button>
-                <button onClick={() => handleDeleteNote(note.id)} className="text-rcai-text-muted hover:text-rcai-danger">
+                <button onClick={() => handleDeleteNote(note.id)} aria-label="Delete note" className="text-rcai-text-muted hover:text-rcai-danger">
                   <Trash2 size={14} />
                 </button>
               </div>

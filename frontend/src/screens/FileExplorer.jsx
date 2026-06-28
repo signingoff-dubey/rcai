@@ -60,7 +60,7 @@ function LogsModal({ file, onClose }) {
             <h3 className="font-display text-sm font-semibold text-rcai-text-primary">{file?.name}</h3>
             {isBinary && <span className="text-xs bg-rcai-warning/20 text-rcai-warning px-2 py-0.5 rounded">BINARY</span>}
           </div>
-          <button onClick={onClose} className="text-rcai-text-muted hover:text-rcai-text-primary transition-colors">
+          <button onClick={onClose} aria-label="Close file viewer" className="text-rcai-text-muted hover:text-rcai-text-primary transition-colors">
             <X size={18} />
           </button>
         </div>
@@ -282,6 +282,9 @@ function PocFilePanel({ file, metadata, onPairBinary, onAnalyse, onDelete }) {
         <button onClick={handleAnalyseClick} disabled={analysing} className="bg-rcai-accent hover:bg-blue-500 disabled:opacity-50 text-white rounded-lg px-4 py-2 text-sm transition-all flex items-center gap-2">
           <Play size={14} /> {analysing ? 'Analysing...' : 'Analyse'}
         </button>
+        <button onClick={() => onPairBinary?.(file)} className="border border-rcai-border hover:bg-rcai-elevated text-rcai-text-secondary rounded-lg px-4 py-2 text-sm transition-all flex items-center gap-2">
+          <Link2 size={14} /> Pair with Binary
+        </button>
         <button onClick={() => onDelete?.(file)} className="border border-rcai-border hover:bg-rcai-elevated text-rcai-danger hover:text-red-400 rounded-lg px-4 py-2 text-sm transition-all flex items-center gap-2">
           <Trash2 size={14} /> Delete
         </button>
@@ -333,6 +336,7 @@ export default function FileExplorer() {
   const [contextMenu, setContextMenu] = useState(null);
   const [analysing, setAnalysing] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState('');
+  const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef(null);
   const cmRef = useRef(null);
   const setCurrentAnalysisId = useAppStore((s) => s.setCurrentAnalysisId);
@@ -359,8 +363,7 @@ export default function FileExplorer() {
     return () => document.removeEventListener('click', handleClick);
   }, []);
 
-  const handleUpload = async (e) => {
-    const file = e.target.files?.[0];
+  const uploadFile = async (file) => {
     if (!file) return;
     setUploading(true);
     try {
@@ -370,6 +373,15 @@ export default function FileExplorer() {
       refreshData();
     } catch {}
     setUploading(false);
+  };
+
+  const handleUpload = (e) => uploadFile(e.target.files?.[0]);
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) uploadFile(file);
   };
 
   const handleDelete = async (file) => {
@@ -455,10 +467,15 @@ export default function FileExplorer() {
       <div className="w-72 shrink-0 flex flex-col gap-4">
         <div
           onClick={() => fileInputRef.current?.click()}
-          className="rounded-xl bg-rcai-card border-2 border-dashed border-rcai-border p-6 text-center cursor-pointer hover:border-rcai-accent/50 transition-all"
+          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+          onDragLeave={(e) => { e.preventDefault(); setDragOver(false); }}
+          onDrop={handleDrop}
+          className={`rounded-xl bg-rcai-card border-2 border-dashed p-6 text-center cursor-pointer transition-all ${
+            dragOver ? 'border-rcai-accent bg-rcai-accent/5' : 'border-rcai-border hover:border-rcai-accent/50'
+          }`}
         >
-          <Upload size={24} className="mx-auto mb-2 text-rcai-text-secondary" />
-          <p className="text-sm text-rcai-text-secondary">Drop dataset folder or .zip here</p>
+          <Upload size={24} className={`mx-auto mb-2 ${dragOver ? 'text-rcai-accent' : 'text-rcai-text-secondary'}`} />
+          <p className="text-sm text-rcai-text-secondary">{dragOver ? 'Release to upload' : 'Drop dataset folder or .zip here'}</p>
           {uploading && (
             <div className="mt-2 h-1 bg-rcai-border rounded overflow-hidden">
               <div className="h-full bg-rcai-accent rounded animate-pulse" style={{ width: '60%' }} />
