@@ -12,7 +12,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Play, Layout as LayoutIcon, ZoomIn, ZoomOut } from 'lucide-react';
+import { X, Play, Layout as LayoutIcon } from 'lucide-react';
 import { getPipeline, getAnalysesList, analyseBinary } from '../api/client';
 import useAppStore from '../store/useAppStore';
 
@@ -194,6 +194,7 @@ function PipelineInner() {
           <select
             value={analysisId || ''}
             onChange={(e) => { const id = Number(e.target.value); setAnalysisId(id); setCurrentAnalysisId(id); }}
+            aria-label="Select analysis to view pipeline"
             className="bg-rcai-elevated border border-rcai-border text-rcai-text-primary text-sm rounded-lg px-3 py-1.5 max-w-48"
           >
             {analyses.length === 0 && <option value="">No analyses</option>}
@@ -256,7 +257,7 @@ function PipelineInner() {
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-display text-lg font-semibold text-rcai-text-primary">{selectedNode.label}</h3>
-              <button onClick={() => setSelectedNode(null)} className="text-rcai-text-secondary hover:text-rcai-text-primary">
+              <button onClick={() => setSelectedNode(null)} aria-label="Close stage details" className="text-rcai-text-secondary hover:text-rcai-text-primary">
                 <X size={18} />
               </button>
             </div>

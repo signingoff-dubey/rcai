@@ -153,10 +153,43 @@
   --rcai-glow-color: rgba(255, 59, 48, 0.1);
 }
 
+html {
+  /* 16px base; respects user zoom/settings via rem downstream */
+  font-size: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
   margin: 0;
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  letter-spacing: -0.006em;
+  color: var(--rcai-text-primary);
+  font-feature-settings: 'kern', 'liga', 'calt';
+  font-kerning: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Display family (JetBrains Mono): headings, labels, numeric data.
+   Tighter leading + tabular figures so counts/scores never jitter. */
+.font-display {
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum', 'zero';
+}
+
+/* Open up tracking on small uppercase labels for legibility. */
+.uppercase.tracking-wider {
+  letter-spacing: 0.08em;
+}
+
+/* Align numeric data in tables, stat values, and monospace readouts. */
+.font-mono,
+table {
+  font-variant-numeric: tabular-nums;
 }
 
 /* ===== RIPPLE EFFECT ===== */
@@ -298,6 +331,17 @@ select:focus-visible,
 
 *::-webkit-scrollbar-thumb:hover {
   background-color: var(--rcai-text-muted);
+}
+
+/* ===== KEYBOARD FOCUS ===== */
+/* Visible focus ring for keyboard users only (mouse clicks stay clean). */
+:focus-visible {
+  outline: 2px solid var(--rcai-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+*:focus:not(:focus-visible) {
+  outline: none;
 }
 
 /* ===== REDUCED MOTION ===== */

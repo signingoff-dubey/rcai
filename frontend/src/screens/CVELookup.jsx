@@ -79,7 +79,7 @@ export default function CVELookup() {
           className="w-full bg-rcai-card border border-rcai-border rounded-lg pl-10 pr-10 py-3 text-sm text-rcai-text-primary placeholder-rcai-text-muted focus:outline-none focus:border-rcai-accent transition-colors"
         />
         {query && (
-          <button onClick={clearSearch} className="absolute right-3 top-1/2 -translate-y-1/2 text-rcai-text-muted hover:text-rcai-text-primary">
+          <button onClick={clearSearch} aria-label="Clear search" className="absolute right-3 top-1/2 -translate-y-1/2 text-rcai-text-muted hover:text-rcai-text-primary">
             <X size={16} />
           </button>
         )}
@@ -176,7 +176,7 @@ export default function CVELookup() {
               )}
             </div>
             <div className="flex items-center gap-2">
-              <button onClick={() => setSelected(null)} className="text-rcai-text-muted hover:text-rcai-text-primary transition-colors">
+              <button onClick={() => setSelected(null)} aria-label="Close CVE details" className="text-rcai-text-muted hover:text-rcai-text-primary transition-colors">
                 <X size={18} />
               </button>
               {selected.cve_id && (
@@ -200,10 +200,10 @@ export default function CVELookup() {
                     <span className="text-rcai-text-secondary">{new Date(nvdDetail.published).toLocaleDateString()}</span>
                   </>
                 )}
-                {nvdDetail.lastModified && (
+                {nvdDetail.modified && (
                   <>
                     <span className="text-rcai-text-muted">Last Modified</span>
-                    <span className="text-rcai-text-secondary">{new Date(nvdDetail.lastModified).toLocaleDateString()}</span>
+                    <span className="text-rcai-text-secondary">{new Date(nvdDetail.modified).toLocaleDateString()}</span>
                   </>
                 )}
                 {nvdDetail.description && (

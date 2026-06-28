@@ -2,8 +2,15 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Filter, RefreshCw, GitBranch, Shield } from 'lucide-react';
-import Plot from 'react-plotly.js';
+import createPlotlyComponent from 'react-plotly.js/factory';
+import Plotly from 'plotly.js/lib/core';
+import scatter from 'plotly.js/lib/scatter';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+
+// Crash Clusters only renders a scatter plot — register just that trace
+// instead of pulling the full ~4.5MB plotly bundle.
+Plotly.register([scatter]);
+const Plot = createPlotlyComponent(Plotly);
 import SeverityBadge from '../components/shared/SeverityBadge';
 import { getClusters } from '../api/client';
 import { severityColors } from '../utils/severity';
@@ -271,7 +278,7 @@ export default function CrashClusters() {
             >
               <div className="flex items-center justify-between mb-3">
                 <h4 className="font-display text-sm font-semibold text-rcai-text-primary">{selected.folder_name || selected.file_name || 'Crash'}</h4>
-                <button onClick={() => setSelected(null)} className="text-rcai-text-secondary hover:text-rcai-text-primary">
+                <button onClick={() => setSelected(null)} aria-label="Close details" className="text-rcai-text-secondary hover:text-rcai-text-primary">
                   <X size={16} />
                 </button>
               </div>

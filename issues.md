@@ -4,6 +4,49 @@
 
 ---
 
+## [ISSUE-019] — 2026-06-28
+**Title:** Performance (optimize) — Plotly full bundle bloated Crash Clusters chunk to 4.9MB
+**Symptom:** `CrashClusters` route chunk was 4,880 KB raw / ~1,480 KB gzip — a multi-second download on first visit to /clusters. Measured via `vite build` chunk report.
+**Root Cause:** `import Plot from 'react-plotly.js'` pulled the entire `plotly.js-dist-min` (~4.5MB, all chart types) when the screen only renders a single scatter plot.
+**Fix:** Switched to a modular Plotly build via `react-plotly.js/factory` + `plotly.js/lib/core` + `plotly.js/lib/scatter` (register scatter only). Replaced `plotly.js-dist-min@^2.29.1` dependency with `plotly.js@^3.6.0` (already present transitively) and synced package-lock. Result: CrashClusters chunk **4,880 KB → 1,019 KB raw (~330 KB gzip), ~79% smaller**.
+**Files Changed:** `frontend/src/screens/CrashClusters.jsx`, `frontend/package.json`, `frontend/package-lock.json`
+**Status:** Resolved
+**Assessed, no action:** All screens already route-split (React.lazy); Monaco editor is CDN-loaded (not bundled); initial load ≈ index 96KB + Dashboard/Recharts gzip — acceptable. Recharts (98KB gzip) and React Flow (57KB gzip) are reasonable for their screens.
+
+---
+
+## [ISSUE-018] — 2026-06-28
+**Title:** Typography pass (typeset) — Inter loaded but never applied; no base type system
+**Symptom:** UI body text rendered in system-ui, not Inter; the Google-loaded Inter font was unused. No base line-height/kerning; numeric data (CVSS, stat values, counts) used proportional figures that shift width.
+**Root Cause:** `body` only set margin + smoothing; Tailwind config only *extended* `display`/`body` families without overriding default `sans`, and `font-body` was never used (0 occurrences). No typographic base layer.
+**Fix:** Set Inter as the base body font with 1rem size, line-height 1.5, slight negative tracking, `font-kerning`/`liga`/`calt`, and optimizeLegibility. Gave `.font-display` (JetBrains Mono headings/labels/data) tighter 1.2 leading + tabular figures (`tnum`/`zero`). Applied tabular-nums to `.font-mono` and tables so numbers align and never jitter. Opened tracking on small uppercase labels. html base font-size 100% (respects user zoom).
+**Files Changed:** `frontend/src/index.css`
+**Status:** Resolved
+**Not changed (acceptable):** Card section titles stay `text-sm` (dense-dashboard convention); hierarchy now carried by font/weight/leading/tracking rather than size alone.
+
+---
+
+## [ISSUE-017] — 2026-06-28
+**Title:** UI/UX audit (ui-ux-pro-max) — accessibility & consistency gaps across all screens
+**Symptom:** No keyboard focus indicator anywhere; many icon-only buttons and select dropdowns lacked accessible names; Recharts tooltips rendered light-themed (white box) on the dark app
+**Root Cause:** Focus styles never defined; aria-labels omitted on icon-only controls; chart tooltips left at Recharts defaults
+**Fix:** Added global `:focus-visible` ring in index.css (keyboard-only). Added aria-labels to icon-only buttons (close X across CrashClusters/Pipeline/CVELookup/FileExplorer; note Add/Save/Edit/Delete in SecurityIntel) and to analysis select dropdowns (Pipeline/SecurityIntel/ExploitLab). Themed Recharts tooltips dark on Dashboard + SecurityIntel for consistency with cluster charts. Reduced-motion was already handled.
+**Files Changed:** `frontend/src/index.css`, `frontend/src/screens/{CrashClusters,Pipeline,SecurityIntel,ExploitLab,CVELookup,FileExplorer,Dashboard}.jsx`
+**Status:** Resolved
+**Not changed (acceptable):** h1(TopBar)→h3(cards) heading skip is minor and semantically OK; Settings API-config values are static display strings (demo).
+
+---
+
+## [ISSUE-016] — 2026-06-28
+**Title:** Missing spec'd features found in screen audit
+**Symptom:** (1) File Explorer PoC panel had no "Pair with Binary" button (handler existed but unwired); (2) upload zone was click-only despite "Drop here" label — no drag-and-drop; (3) Security Intel "NVD Description" showed only the local summary, not real NVD data (no dates/references)
+**Root Cause:** Features partially scaffolded but never completed against CLAUDE.md spec
+**Fix:** (1) Added Pair with Binary button calling existing `onPairBinary`; (2) added `onDragOver/onDragLeave/onDrop` with drag highlight, refactored upload into `uploadFile()`; (3) Security Intel now fetches live NVD via `lookupCVE(cve, true)` and renders description, published/modified dates, and reference links. Also fixed `lastModified`→`modified` field mismatch (NVD client returns `modified`) in both Security Intel and CVE Lookup. Removed dead ZoomIn/ZoomOut import in Pipeline.
+**Files Changed:** `frontend/src/screens/FileExplorer.jsx`, `frontend/src/screens/SecurityIntel.jsx`, `frontend/src/screens/CVELookup.jsx`, `frontend/src/screens/Pipeline.jsx`, `frontend/src/api/client.js`
+**Status:** Resolved
+
+---
+
 ## [ISSUE-013] — 2026-06-28
 **Title:** Cross-screen "view this crash" buttons ignored the selected crash
 **Symptom:** Crash Clusters side-panel ("View in Pipeline"/"View Security Intel") and Timeline ("View Full Analysis") navigated to a generic/default analysis instead of the clicked one

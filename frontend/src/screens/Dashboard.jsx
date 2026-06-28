@@ -80,7 +80,7 @@ export default function Dashboard() {
                 <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} dataKey="value" paddingAngle={3}>
                   {pieData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                 </Pie>
-                <Tooltip />
+                <Tooltip contentStyle={{ background: '#111827', border: '1px solid #1E2D45', borderRadius: 8, fontSize: 12 }} itemStyle={{ color: '#F1F5F9' }} labelStyle={{ color: '#94A3B8' }} />
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
@@ -96,7 +96,7 @@ export default function Dashboard() {
               <BarChart data={causeData} layout="vertical" margin={{ left: 20 }}>
                 <XAxis type="number" tick={{ fill: 'var(--rcai-text-secondary)', fontSize: 11 }} />
                 <YAxis type="category" dataKey="cause" tick={{ fill: 'var(--rcai-text-secondary)', fontSize: 11 }} width={100} />
-                <Tooltip />
+                <Tooltip contentStyle={{ background: '#111827', border: '1px solid #1E2D45', borderRadius: 8, fontSize: 12 }} itemStyle={{ color: '#F1F5F9' }} labelStyle={{ color: '#94A3B8' }} />
                 <Bar dataKey="count" fill="var(--rcai-accent)" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
