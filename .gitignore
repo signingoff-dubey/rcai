@@ -19,7 +19,7 @@ skills-*/
 *.db-wal
 *.db-shm
 
-# Claude Code local state (machine-specific)
+# Local state (machine-specific)
 .claude/settings.local.json
 .claude/scheduled_tasks.lock
 .claude/skills/

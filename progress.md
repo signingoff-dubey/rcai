@@ -278,5 +278,6 @@ A comprehensive audit was conducted across 5 dimensions (Accessibility, Performa
 ## Git History
 | Commit | Date | Message |
 |--------|------|---------|
+| eeb7982 | 2026-07-23 | Backend: env config, logging, zip-bomb guard, GDB injection fix, silent except audit |
 | 88dc6ca | 2026-07-23 | Frontend: 12 UX/theme fixes, chartTooltipStyle, sidebar exploit link, Recharts theming, context-menu viewport clamp, severity dedup |
 | 366ef8f | 2026-06-28 | Initial commit: RCAi platform (pushed to github.com/signingoff-dubey/rcai) |

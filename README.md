@@ -93,7 +93,7 @@ The local SQLite database (`backend/rcai.db`) is generated on first run and is a
 │   ├── routers/        API route handlers
 │   ├── core/           Analysis modules
 │   └── db/             SQLite database
-└── .claude/skills/     Design skills reference
+
 ```
 
 ## Screens
