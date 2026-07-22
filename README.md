@@ -81,7 +81,6 @@ The local SQLite database (`backend/rcai.db`) is generated on first run and is a
 ## Project Structure
 
 ```
-├── CLAUDE.md
 ├── frontend/          React + Vite + Tailwind
 │   └── src/
 │       ├── screens/   10 dashboard screens
