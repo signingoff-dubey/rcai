@@ -27,7 +27,7 @@ export default function Sidebar() {
       animate={{ width: collapsed ? 64 : 256 }}
       className="h-screen bg-rcai-card border-r border-rcai-border flex flex-col overflow-hidden shrink-0"
     >
-      <div className="h-14 flex items-center px-4 border-b border-rcai-border gap-3">
+      <div className="h-14 flex items-center px-4 border-b border-rcai-border gap-3 shrink-0">
         <button
           onClick={() => setCollapsed(!collapsed)}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
@@ -50,9 +50,9 @@ export default function Sidebar() {
             className={({ isActive }) =>
               `flex items-center h-10 px-4 gap-3 text-sm transition-all duration-200 ${
                 isActive
-                  ? 'bg-rcai-elevated text-rcai-text-primary border-l-2 border-rcai-accent'
-                  : 'text-rcai-text-secondary hover:bg-rcai-elevated hover:text-rcai-text-primary'
-              } ${item.danger ? 'text-rcai-danger' : ''}`
+                  ? `bg-rcai-elevated border-l-2 border-rcai-accent ${item.danger ? 'text-rcai-danger' : 'text-rcai-text-primary'}`
+                  : `text-rcai-text-secondary hover:bg-rcai-elevated hover:text-rcai-text-primary ${item.danger ? 'hover:text-rcai-danger' : ''}`
+              }`
             }
           >
             <item.icon size={18} />

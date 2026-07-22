@@ -5,6 +5,7 @@ import { Plus, Save, Trash2, Pencil } from 'lucide-react';
 import SeverityBadge from '../components/shared/SeverityBadge';
 import { getSecurityIntel, getAnalysesList, getNotes, createNote, updateNote, deleteNote, lookupCVE } from '../api/client';
 import useAppStore from '../store/useAppStore';
+import { chartTooltipStyle } from '../utils/formatters';
 
 const cvssColor = (score) => {
   if (score >= 9) return '#EF4444';
@@ -200,8 +201,8 @@ export default function SecurityIntel() {
               <BarChart data={ciaData} layout="vertical" margin={{ left: 20 }}>
                 <XAxis type="number" domain={[0, 2]} tick={{ fill: 'var(--rcai-text-secondary)', fontSize: 11 }} tickFormatter={(v) => ['None', 'Low', 'High'][v] || v} />
                 <YAxis type="category" dataKey="name" tick={{ fill: 'var(--rcai-text-secondary)', fontSize: 11 }} width={120} />
-                <Tooltip formatter={(v) => ['None', 'Low', 'High'][v] || v} contentStyle={{ background: '#111827', border: '1px solid #1E2D45', borderRadius: 8, fontSize: 12 }} itemStyle={{ color: '#F1F5F9' }} labelStyle={{ color: '#94A3B8' }} />
-                <Bar dataKey="value" fill="#EF4444" radius={[0, 4, 4, 0]} />
+                <Tooltip formatter={(v) => ['None', 'Low', 'High'][v] || v} {...chartTooltipStyle} />
+                <Bar dataKey="value" fill="var(--rcai-danger)" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>

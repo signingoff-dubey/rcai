@@ -6,6 +6,7 @@ import StatCard from '../components/shared/StatCard';
 import SeverityBadge from '../components/shared/SeverityBadge';
 import { getDashboardSummary, batchAnalyse, getDashboardInsights } from '../api/client';
 import { severityColors } from '../utils/severity';
+import { chartTooltipStyle } from '../utils/formatters';
 
 const severityNames = ['Critical', 'High', 'Medium', 'Low', 'Info'];
 
@@ -80,7 +81,7 @@ export default function Dashboard() {
                 <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} dataKey="value" paddingAngle={3}>
                   {pieData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                 </Pie>
-                <Tooltip contentStyle={{ background: '#111827', border: '1px solid #1E2D45', borderRadius: 8, fontSize: 12 }} itemStyle={{ color: '#F1F5F9' }} labelStyle={{ color: '#94A3B8' }} />
+                <Tooltip {...chartTooltipStyle} />
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
@@ -96,7 +97,7 @@ export default function Dashboard() {
               <BarChart data={causeData} layout="vertical" margin={{ left: 20 }}>
                 <XAxis type="number" tick={{ fill: 'var(--rcai-text-secondary)', fontSize: 11 }} />
                 <YAxis type="category" dataKey="cause" tick={{ fill: 'var(--rcai-text-secondary)', fontSize: 11 }} width={100} />
-                <Tooltip contentStyle={{ background: '#111827', border: '1px solid #1E2D45', borderRadius: 8, fontSize: 12 }} itemStyle={{ color: '#F1F5F9' }} labelStyle={{ color: '#94A3B8' }} />
+                <Tooltip {...chartTooltipStyle} />
                 <Bar dataKey="count" fill="var(--rcai-accent)" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -123,7 +124,7 @@ export default function Dashboard() {
       </div>
 
       {insights.length > 0 && (
-        <div className="rounded-xl bg-rcai-card border border-rcai-accent/20 p-4">
+        <div className="rounded-xl bg-rcai-card border border-rcai-purple/20 p-4">
           <div className="flex items-center gap-2 mb-3">
             <span className="w-2 h-2 rounded-full bg-rcai-purple animate-pulse" />
             <h3 className="font-display text-sm font-semibold text-rcai-text-primary">AI Insights</h3>

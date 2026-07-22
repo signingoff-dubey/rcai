@@ -59,7 +59,7 @@ function LogsModal({ file, onClose, onDelete }) {
   const lang = fileLanguageMap[file?.fileType] || 'plaintext';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={onClose}>
+    <div className="rcai-backdrop" onClick={onClose}>
       <div className="bg-rcai-card border border-rcai-border rounded-xl w-4/5 h-4/5 flex flex-col" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between px-4 py-3 border-b border-rcai-border">
           <div className="flex items-center gap-2">
@@ -560,7 +560,7 @@ export default function FileExplorer() {
                                   {React.createElement(typeIcons[file.fileType] || File, { size: 14 })}
                                   <span className="flex-1 truncate">{file.name}</span>
                                   {file.is_new === 1 && (
-                                    <span className="text-xxs bg-rcai-accent/20 text-rcai-accent px-1 font-semibold" style={{ fontSize: '9px' }}>N</span>
+                                    <span className="text-[9px] bg-rcai-accent/20 text-rcai-accent px-1 font-semibold">N</span>
                                   )}
                                   {file.analysed ? (
                                     <span className="text-xs text-rcai-success">{"\u25CF"}</span>
@@ -585,7 +585,12 @@ export default function FileExplorer() {
       {contextMenu && (
         <div
           ref={cmRef}
-          style={{ position: 'fixed', left: contextMenu.x, top: contextMenu.y, zIndex: 100 }}
+          style={{
+            position: 'fixed',
+            left: Math.min(contextMenu.x, window.innerWidth - 160),
+            top: Math.min(contextMenu.y, window.innerHeight - 120),
+            zIndex: 100,
+          }}
           className="bg-rcai-card border border-rcai-border rounded-lg shadow-xl py-1 w-40"
         >
           {contextMenu.file.fileType === 'binary' && (

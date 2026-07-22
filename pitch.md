@@ -50,6 +50,25 @@ Every stage is clickable in the Pipeline view and shows its exact input, output,
 
 ---
 
+## Per-Screen Details
+
+The app is a 10-screen dashboard. Every screen reads live data from the FastAPI backend.
+
+| # | Screen | Route | What it does |
+|---|--------|-------|--------------|
+| 1 | **Dashboard** | `/` | Command centre. Four stat cards (total crashes, CVEs identified, highest CVSS, projects), a severity donut, a root-cause bar chart, top vulnerable components, a recent-activity feed, AI insight summaries, and quick actions (upload, run full analysis, export). |
+| 2 | **File Explorer** | `/explorer` | Ingest + browse. Drag-and-drop / click upload (`.zip` or single files), a project → folder → file tree with per-file analysis status dots, ELF metadata panel, Monaco read-only viewer for PoC/text files, and per-file Analyse / View / Pair-with-Binary / Delete actions (delete also available inside the viewer modal). |
+| 3 | **Pipeline** | `/pipeline` | The 9-stage analysis as an interactive React Flow node graph. Pick any analysis, watch stage statuses, toggle vertical/horizontal auto-layout, re-run, and click any node to open a drawer showing its exact input JSON, output JSON, and a plain-English explanation. |
+| 4 | **Security Intel** | `/security` | Deep risk view for one crash. Circular CVSS gauge + vector, attack-characteristics table, affected component with CWE link, CIA-impact bars, **live NVD description** (published/modified dates + references), similar-vulnerability lookup across the corpus, and persistent analyst notes (CRUD). |
+| 5 | **Exploit Lab** | `/exploit` | Vulnerability research & reproduction lab. Shows the real trigger PoC (syntax-highlighted), the real parsed stack trace, crash-signal data (signal, crash/fault address, register), an AI root-cause writeup (what failed / why / vulnerable code path / mitigation) with a confidence bar, a minimal-PoC reducer, an AI-simulated reproduction runner, and JSON export. One-time research disclaimer. |
+| 6 | **Crash Clusters** | `/clusters` | Plotly scatter laying out crashes so shared root causes group together (marker size = CVSS). Filter by project, recolour by severity / root cause / project, box-select a region and "Analyse Cluster" for a shared-feature breakdown, plus a root-cause distribution bar chart and AI cluster insights. |
+| 7 | **Timeline** | `/timeline` | Horizontal SVG timeline placing each vulnerability on its real CVE year (2016–2024). Year-range slider, project and severity filters, hover tooltips, click-to-expand event cards, and per-project trend insights. |
+| 8 | **CVE Lookup** | `/cve` | Searches local analyses **and** the live NVD database; lists all workspace-identified CVEs by default. Detail view shows severity, CVSS, NVD description, published/modified dates, and reference links. |
+| 9 | **Report Builder** | `/report` | Select any analysis, auto-generate its RCA report (root cause, severity, CVSS, CVE, pipeline stages), and export as JSON, Markdown, or PDF. |
+| 10 | **Settings** | `/settings` | API/security configuration (keys stay server-side), a 5-theme switcher (Default, Glass, Skeuomorphic, Clay, Neo-Brutalism), and an About panel. |
+
+---
+
 ## Target Audience
 
 - **Security researchers and fuzzing teams** triaging large crash corpora
@@ -71,6 +90,54 @@ Every stage is clickable in the Pipeline view and shows its exact input, output,
 | Analysis | pygdbmi (GDB), Drain3 (log templating), custom ELF parser, NetworkX |
 | Data | SQLite via aiosqlite, NVD REST API v2.0 |
 | Reports | fpdf2 (PDF), Markdown, JSON |
+
+---
+
+## Project Structure
+
+```
+rcai/
+├── backend/                     # FastAPI service
+│   ├── main.py                  # App entry, router registration, CORS, security headers
+│   ├── routers/                 # REST endpoints (one per domain)
+│   │   ├── upload.py            #   POST /api/upload  (path-traversal + Zip-Slip hardened)
+│   │   ├── files.py             #   file tree, metadata, content, delete
+│   │   ├── analyse.py           #   run the 9-stage pipeline (single + batch)
+│   │   ├── pipeline.py          #   per-analysis stage I/O
+│   │   ├── security.py          #   CVSS / CWE / CIA / similar-vuln
+│   │   ├── exploit.py           #   PoC, stack trace, minimise, run
+│   │   ├── clusters.py          #   t-SNE-style layout + AI insights
+│   │   ├── cve.py               #   local + NVD search, CVE list
+│   │   ├── timeline.py          #   events by CVE year
+│   │   ├── dashboard.py         #   summary + insights
+│   │   ├── report.py            #   JSON / Markdown / PDF export
+│   │   ├── analyses_list.py, notes.py, seed.py, explain.py
+│   ├── core/                    # Analysis engine
+│   │   ├── gdb_runner.py        #   GDB execution (real on Linux, synthetic fallback)
+│   │   ├── drain_parser.py      #   Drain3 stack-trace templating
+│   │   ├── classifier.py        #   root-cause classifier + heuristic fallback
+│   │   ├── cvss_scorer.py       #   CVSS v3 base score + vector
+│   │   ├── nvd_client.py        #   live NVD REST API v2.0 (SSRF-guarded)
+│   │   ├── groq_client.py       #   Groq LLM (Llama 3.3 70B)
+│   │   ├── graph_builder.py     #   NetworkX crash dependency graph
+│   │   └── cache.py             #   query / NVD / LLM response cache
+│   ├── db/                      # SQLite (aiosqlite) — database.py, models.py
+│   └── uploads/                 # uploaded artifacts (gitignored)
+├── frontend/                    # React 18 + Vite + Tailwind
+│   ├── src/
+│   │   ├── App.jsx              # Router + layout shell (route-level code splitting)
+│   │   ├── screens/             # 10 screens (Dashboard … Settings)
+│   │   ├── components/
+│   │   │   ├── Layout/          # Sidebar, TopBar
+│   │   │   └── shared/          # StatCard, SeverityBadge, CrashCard, LoadingSpinner
+│   │   ├── store/useAppStore.js # Zustand global state (theme, current analysis)
+│   │   ├── api/client.js        # all Axios calls
+│   │   └── utils/               # severity colour map, formatters
+│   ├── index.html, vite.config.js, tailwind.config.js
+├── dataset/                     # crash corpus (gitignored, ~104MB — fetch separately)
+├── package.json                 # root: runs frontend + backend via concurrently
+└── README.md / prd.md / progress.md / issues.md / pitch.md
+```
 
 ---
 

@@ -1,3 +1,14 @@
+export const chartTooltipStyle = {
+  contentStyle: {
+    background: 'var(--rcai-card)',
+    border: '1px solid var(--rcai-border)',
+    borderRadius: 8,
+    fontSize: 12,
+  },
+  itemStyle: { color: 'var(--rcai-text-primary)' },
+  labelStyle: { color: 'var(--rcai-text-secondary)' },
+};
+
 export const formatBytes = (bytes) => {
   if (!bytes) return '0 B';
   const units = ['B', 'KB', 'MB', 'GB'];

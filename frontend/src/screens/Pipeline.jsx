@@ -27,8 +27,8 @@ function PipelineNode({ data }) {
   const colors = stageColors[data.status] || stageColors.pending;
   return (
     <div
-      className="rounded-xl border border-rcai-border overflow-hidden cursor-pointer transition-all duration-200 hover:border-rcai-accent/50"
-      style={{ background: colors.bg, width: 220 }}
+      className="rounded-xl border border-rcai-border overflow-hidden cursor-pointer transition-all duration-200 hover:border-rcai-accent/50 w-[220px]"
+      style={{ background: colors.bg }}
     >
       <div className="flex items-center gap-2 px-3 py-2 border-b border-rcai-border">
         <span className="w-2 h-2 rounded-full" style={{ background: colors.dot }} />
@@ -190,7 +190,7 @@ function PipelineInner() {
   return (
     <div className="flex gap-4 h-[calc(100vh-8rem)]">
       <div className="flex-1 relative rounded-xl overflow-hidden bg-rcai-card border border-rcai-border">
-        <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
+        <div className="absolute top-3 left-3 z-10 flex items-center gap-2 flex-wrap max-w-[90%]">
           <select
             value={analysisId || ''}
             onChange={(e) => { const id = Number(e.target.value); setAnalysisId(id); setCurrentAnalysisId(id); }}

@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search, Globe, Loader, ExternalLink, X } from 'lucide-react';
 import SeverityBadge from '../components/shared/SeverityBadge';
-import { lookupCVE, listCVEs } from '../api/client';
-import axios from 'axios';
+import { lookupCVE, listCVEs, searchCVE } from '../api/client';
 
 const severityFromScore = (score) => {
   if (!score && score !== 0) return 'Info';
@@ -39,7 +38,7 @@ export default function CVELookup() {
     setLoading(true);
     debounceRef.current = setTimeout(async () => {
       try {
-        const res = await axios.get(`/api/cve/search?q=${encodeURIComponent(query.trim())}`);
+        const res = await searchCVE(query.trim());
         setResults(res.data?.results || []);
       } catch {
         setResults([]);
@@ -110,7 +109,7 @@ export default function CVELookup() {
                 <p className="text-xs text-rcai-text-secondary mt-0.5 truncate">{item.description || item.summary || item.root_cause || item.file_name || ''}</p>
               </div>
               {(item.cvss_score || item.cvss_score === 0) && (
-                <span className="font-display text-lg font-bold" style={{ color: item.cvss_score >= 7 ? '#EF4444' : item.cvss_score >= 4 ? '#F59E0B' : '#10B981' }}>
+                <span className="font-display text-lg font-bold" style={{ color: item.cvss_score >= 7 ? 'var(--rcai-danger)' : item.cvss_score >= 4 ? 'var(--rcai-warning)' : 'var(--rcai-success)' }}>
                   {item.cvss_score}
                 </span>
               )}
@@ -147,7 +146,7 @@ export default function CVELookup() {
                   <p className="text-xs text-rcai-text-secondary mt-0.5 truncate">{item.summary || item.root_cause || item.file_name || ''}</p>
                 </div>
                 {(item.cvss_score || item.cvss_score === 0) && (
-                  <span className="font-display text-lg font-bold" style={{ color: item.cvss_score >= 7 ? '#EF4444' : item.cvss_score >= 4 ? '#F59E0B' : '#10B981' }}>
+                  <span className="font-display text-lg font-bold" style={{ color: item.cvss_score >= 7 ? 'var(--rcai-danger)' : item.cvss_score >= 4 ? 'var(--rcai-warning)' : 'var(--rcai-success)' }}>
                     {item.cvss_score}
                   </span>
                 )}
@@ -170,7 +169,7 @@ export default function CVELookup() {
               <h3 className="font-display text-lg font-semibold text-rcai-text-primary">{selected.cve_id || 'Local Match'}</h3>
               {selected.severity && <SeverityBadge severity={selected.severity} />}
               {selected.cvss_score && (
-                <span className="font-display text-sm font-bold px-2 py-0.5 rounded" style={{ background: selected.cvss_score >= 7 ? '#EF444422' : '#3B82F622', color: selected.cvss_score >= 7 ? '#EF4444' : '#3B82F6' }}>
+                <span className="font-display text-sm font-bold px-2 py-0.5 rounded" style={{ background: selected.cvss_score >= 7 ? 'var(--rcai-danger)' : 'var(--rcai-accent)', color: '#fff', opacity: 0.85 }}>
                   {selected.cvss_score}
                 </span>
               )}

@@ -74,6 +74,8 @@ export const batchAnalyse = () => api.post('/analyse/batch');
 
 export const getDashboardInsights = () => api.get('/dashboard/insights');
 
+export const searchCVE = (query) => api.get(`/cve/search?q=${encodeURIComponent(query)}`);
+
 export const getFileExplanation = (fileId) => api.post(`/explain/${fileId}`);
 
 export default api;

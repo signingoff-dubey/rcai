@@ -4,8 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import SeverityBadge from '../components/shared/SeverityBadge';
 import { getTimelineEvents } from '../api/client';
 import useAppStore from '../store/useAppStore';
+import { severityColors } from '../utils/severity';
 
-const colorMap = { Critical: '#EF4444', High: '#F59E0B', Medium: '#3B82F6', Low: '#10B981', Info: '#8B5CF6' };
 const severityToCvss = { Critical: 9.5, High: 7.5, Medium: 5.0, Low: 2.5, Info: 1.0 };
 const getDotSize = (e) => {
   const score = e.cvss_score || severityToCvss[e.severity] || 5;
@@ -153,7 +153,7 @@ export default function Timeline() {
                           cx={`${x}%`}
                           cy={cy}
                           r={isHovered ? getDotSize(e) + 4 : getDotSize(e)}
-                          fill={colorMap[e.severity] || '#475569'}
+                          fill={severityColors[e.severity] || '#475569'}
                           stroke={isHovered ? '#F1F5F9' : 'var(--rcai-bg)'}
                           strokeWidth={isHovered ? 3 : 2}
                           className="cursor-pointer transition-all duration-150"

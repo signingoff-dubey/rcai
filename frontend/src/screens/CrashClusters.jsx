@@ -15,6 +15,7 @@ import SeverityBadge from '../components/shared/SeverityBadge';
 import { getClusters } from '../api/client';
 import { severityColors } from '../utils/severity';
 import useAppStore from '../store/useAppStore';
+import { chartTooltipStyle } from '../utils/formatters';
 
 const projectColorMap = {
   NASM: '#3B82F6',
@@ -55,7 +56,7 @@ export default function CrashClusters() {
     getClusters().then((res) => {
       setClusters(res.data.clusters || []);
       setInsights(res.data.insights || []);
-    }).catch((err) => console.error('Failed to load clusters:', err));
+    }).catch(() => {});
   }, []);
 
   const filtered = filter === 'All'
@@ -77,7 +78,7 @@ export default function CrashClusters() {
     marker: {
       size: filtered.map((c) => (c.cvss_score || 5) * 3),
       color: filtered.map((c) => getColor(c)),
-      line: { color: '#0A0E1A', width: 1 },
+      line: { color: 'var(--rcai-bg)', width: 1 },
     },
     hoverinfo: 'text',
     ids: filtered.map((c) => c.id),
@@ -169,7 +170,7 @@ export default function CrashClusters() {
                 <BarChart data={top(causes).map(([name, count]) => ({ name, count }))} margin={{ top: 4, right: 8, left: -20, bottom: 4 }}>
                   <XAxis dataKey="name" tick={{ fill: '#94A3B8', fontSize: 10 }} interval={0} angle={-15} textAnchor="end" height={50} />
                   <YAxis allowDecimals={false} tick={{ fill: '#94A3B8', fontSize: 10 }} />
-                  <Tooltip cursor={{ fill: '#1A2235' }} contentStyle={{ background: '#111827', border: '1px solid #1E2D45', borderRadius: 8, fontSize: 12 }} />
+                  <Tooltip cursor={{ fill: 'var(--rcai-elevated)' }} {...chartTooltipStyle} />
                   <Bar dataKey="count" radius={[4, 4, 0, 0]}>
                     {top(causes).map(([name], i) => (
                       <Cell key={i} fill={causeColorMap[name] || '#3B82F6'} />
@@ -342,7 +343,7 @@ export default function CrashClusters() {
               <BarChart data={data} margin={{ top: 4, right: 8, left: -20, bottom: 40 }}>
                 <XAxis dataKey="name" tick={{ fill: '#94A3B8', fontSize: 10 }} interval={0} angle={-20} textAnchor="end" height={70} />
                 <YAxis allowDecimals={false} tick={{ fill: '#94A3B8', fontSize: 10 }} />
-                <Tooltip cursor={{ fill: '#1A2235' }} contentStyle={{ background: '#111827', border: '1px solid #1E2D45', borderRadius: 8, fontSize: 12 }} />
+                <Tooltip cursor={{ fill: 'var(--rcai-elevated)' }} {...chartTooltipStyle} />
                 <Bar dataKey="count" radius={[4, 4, 0, 0]}>
                   {data.map((d, i) => (
                     <Cell key={i} fill={causeColorMap[d.name] || '#3B82F6'} />
