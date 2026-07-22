@@ -1,7 +1,10 @@
+import logging
 import re
 import httpx
 from backend.core.groq_client import groq_chat
 from backend.core.cache import nvd_cache
+
+logger = logging.getLogger(__name__)
 
 NVD_BASE = "https://services.nvd.nist.gov/rest/json/cves/2.0"
 
@@ -60,7 +63,8 @@ async def fetch_cve_details(cve_id: str) -> dict:
             }
             nvd_cache.set(cve_id, result)
             return result
-        except Exception:
+        except Exception as exc:
+            logger.warning("NVD fetch failed for %s: %s", cve_id, exc)
             result = {
                 "cve_id": cve_id,
                 "description": "Could not fetch from NVD API.",
@@ -81,8 +85,8 @@ async def _nvd_keyword_search(keywords: str) -> str | None:
             vulns = data.get("vulnerabilities", [])
             if vulns:
                 return vulns[0].get("cve", {}).get("id")
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("NVD keyword search failed: %s", exc)
     return None
 
 
@@ -97,8 +101,8 @@ async def match_cve_from_description(description: str) -> str:
             result = await _nvd_keyword_search(keyword_str)
             if result:
                 return result
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.debug("NVD keyword parse failed: %s", exc)
 
     try:
         prompt = (
@@ -114,7 +118,7 @@ async def match_cve_from_description(description: str) -> str:
         result = result.strip()
         if result.startswith("CVE-") and result != "NONE":
             return result
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.warning("CVE match via AI failed: %s", exc)
 
     return ""

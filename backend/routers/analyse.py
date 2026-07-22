@@ -1,4 +1,5 @@
 import json
+import logging
 from fastapi import APIRouter, HTTPException
 from backend.db.database import get_db
 from backend.core.cache import db_cache
@@ -9,6 +10,7 @@ from backend.core.cvss_scorer import calculate_cvss
 from backend.core.nvd_client import fetch_cve_details, match_cve_from_description, extract_cve_id
 from backend.routers.files import _parse_elf_metadata
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/analyse", tags=["analyse"])
 
 
@@ -38,8 +40,8 @@ async def batch_analyse():
         try:
             result = await analyse_binary(row["id"])
             results.append(result)
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("Batch analyse failed for binary %s: %s", row["id"], exc)
 
     return {"status": "completed", "analysed": len(results), "total": len(rows)}
 
@@ -144,7 +146,8 @@ async def analyse_binary(binary_id: int):
                 memory_region=mem_region,
                 crash_address=gdb_result.get("crash_address", ""),
             )
-        except Exception:
+        except Exception as exc:
+            logger.warning("Root cause classification failed: %s", exc)
             classification = {
                 "root_cause": "Unknown",
                 "confidence": 0.0,
@@ -163,7 +166,8 @@ async def analyse_binary(binary_id: int):
                 stack_trace=stack_frames,
                 signal=gdb_result.get("signal", ""),
             )
-        except Exception:
+        except Exception as exc:
+            logger.warning("Explanation generation failed: %s", exc)
             explanation_data = {"what_failed": classification.get("root_cause", "Unknown"),
                                 "why_it_happened": "", "vulnerable_code_path": [], "mitigation": []}
 
@@ -185,8 +189,8 @@ async def analyse_binary(binary_id: int):
                 if cve_id:
                     matched_cve = await fetch_cve_details(cve_id)
                     similarity = 0.85
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("CVE matching failed: %s", exc)
 
         if not matched_cve:
             try:
@@ -196,7 +200,8 @@ async def analyse_binary(binary_id: int):
                     "description": classification.get("summary", "No matching CVE found."),
                     "source": "local",
                 }
-            except Exception:
+            except Exception as exc:
+                logger.warning("Fallback CVE fetch failed: %s", exc)
                 matched_cve = {"cve_id": None, "description": "No matching CVE", "source": "local"}
 
         await _update_stage(db, analysis_id, 7, "complete",
@@ -250,5 +255,6 @@ async def analyse_binary(binary_id: int):
         return {"analysis_id": analysis_id, "status": "completed", "root_cause": classification.get("root_cause")}
     except HTTPException:
         raise
-    except Exception:
+    except Exception as exc:
+        logger.error("Analysis pipeline crashed for binary %s: %s", binary_id, exc, exc_info=True)
         return {"error": "Analysis failed", "status": "error"}

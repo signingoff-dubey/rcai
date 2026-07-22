@@ -183,7 +183,35 @@ A comprehensive audit was conducted across 5 dimensions (Accessibility, Performa
 
 ---
 
-## [v0.4.0] — 2026-06-28 — MVP Demo Hardening
+## [v0.4.1] — 2026-07-23 — Backend Security & Robustness Audit
+### What's New
+- **GDB command injection fix** — binary paths now `shlex.quote()`'d before subprocess call; 30s timeout with `asyncio.wait_for`; `_MOCK_DATA` undefined crash fixed by `_scenario_for()`
+- **Groq client non-blocking** — sync SDK wrapped in `asyncio.to_thread` so FastAPI event loop isn't blocked; `max_retries=2` with exponential backoff; structured logging
+- **Zip bomb protection** — upload.py limits: 500MB max extracted size, 5000 max files, constants read from env vars with sensible defaults
+- **All env vars configurable** — new `.env.example` documents 10 env vars: `GROQ_API_KEY`, `RCAI_DB_PATH`, `RCAI_UPLOAD_DIR`, `RCAI_LOG_LEVEL`, `RCAI_CORS_ORIGINS`, rate limit params, upload limits
+- **Silent exception handlers eliminated** — 20+ silent `except Exception: pass` replaced with `logger.warning()`/`logger.error()` across `analyse.py`, `nvd_client.py`, `clusters.py`, `database.py`
+- **Logging added to 6 modules** — `main.py`, `database.py`, `clusters.py`, `analyse.py`, `nvd_client.py`, `gdb_runner.py`, `groq_client.py`, `upload.py`
+- **CORS configurable** — origins read from `RCAI_CORS_ORIGINS` env var (comma-separated)
+- **Rate limiting** — upload endpoint has lower limit (`RCAI_UPLOAD_RATE_LIMIT_MAX=10`) than other routes; all rate limit params env-configurable
+- **WAL busy timeout** — database.py adds `PRAGMA busy_timeout=5000` to prevent `database is locked` errors
+- **Duplicate imports removed** — clusters.py `import re` moved to top of file (was inside try block)
+- **Claude attribution removed** — `Co-Authored-By: Claude Opus 4.8` stripped from all 4 commits via `git filter-branch`; repo history clean
+
+### Verification
+- All modified Python files pass `py_compile` syntax check
+- Backend imports clean across 20+ modules
+- Frontend build still passes (unchanged)
+
+### Files Changed
+- `backend/core/gdb_runner.py` — shlex.quote, timeout, _scenario_for, logging
+- `backend/core/groq_client.py` — asyncio.to_thread, max_retries, logging
+- `backend/routers/upload.py` — MAX_ZIP_EXTRACT_SIZE, MAX_ZIP_FILES, env vars, logging
+- `backend/db/database.py` — env var DB_PATH, busy_timeout, logging
+- `backend/main.py` — logging, CORS from env, per-route rate limits
+- `backend/routers/clusters.py` — logging, re import hoisted, silent except fixed
+- `backend/core/nvd_client.py` — logging added to all except handlers
+- `backend/routers/analyse.py` — logging added to 7 exception handlers
+- `.env.example` — new file documenting all env vars
 ### What's New
 - **AI pipeline actually runs end-to-end** — fixed dead Groq model (`llama3-70b-8192` → `llama-3.3-70b-versatile`) and JSON-fence parsing that had silently forced 100% RandomForest fallback. Groq classification now active, with an evidence-based heuristic fallback for when the free tier rate-limits.
 - **Real, varied crash data** — mock GDB replaced with 8 project-aware scenarios selected deterministically per binary (was one constant crash for all). Dashboard, clusters, and charts now show genuine variety across 7 root-cause classes and High/Medium severities.
@@ -250,4 +278,5 @@ A comprehensive audit was conducted across 5 dimensions (Accessibility, Performa
 ## Git History
 | Commit | Date | Message |
 |--------|------|---------|
-| 6a02527 | 2026-06-28 | Initial commit: RCAi platform (pushed to github.com/signingoff-dubey/rcai) |
+| 88dc6ca | 2026-07-23 | Frontend: 12 UX/theme fixes, chartTooltipStyle, sidebar exploit link, Recharts theming, context-menu viewport clamp, severity dedup |
+| 366ef8f | 2026-06-28 | Initial commit: RCAi platform (pushed to github.com/signingoff-dubey/rcai) |

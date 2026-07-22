@@ -1,7 +1,11 @@
 import asyncio
 import hashlib
+import logging
 import platform
+import shlex
 from typing import Optional
+
+logger = logging.getLogger(__name__)
 
 try:
     from pygdbmi import gdbmi
@@ -157,15 +161,17 @@ async def run_gdb(binary_path: str, poc_path: str) -> dict:
 
     def _run():
         try:
+            escaped_binary = shlex.quote(binary_path)
             mi = gdbmi.GdbMi()
-            mi.command(f"-file-exec-and-symbols {binary_path}")
+            mi.command(f"-file-exec-and-symbols {escaped_binary}")
             if poc_path:
-                mi.command(f"-exec-run < {poc_path}")
+                escaped_poc = shlex.quote(poc_path)
+                mi.command(f"-exec-run < {escaped_poc}")
             else:
                 mi.command("-exec-run")
-            response = mi.get_response()
+            response = mi.get_response(timeout_seconds=30)
             mi.command("-exec-continue")
-            output = mi.get_response()
+            output = mi.get_response(timeout_seconds=30)
             mi.terminate()
             signal = "SIGSEGV"
             crash_addr = "0x0"
@@ -187,8 +193,9 @@ async def run_gdb(binary_path: str, poc_path: str) -> dict:
                 "fault_address": crash_addr,
                 "crash_register": "RIP",
             }
-        except Exception:
-            return dict(_MOCK_DATA)
+        except Exception as exc:
+            logger.warning("GDB execution failed, using mock scenario: %s", exc)
+            return dict(_scenario_for(binary_path))
 
     return await asyncio.to_thread(_run)
 
@@ -200,12 +207,13 @@ async def get_stack_trace(binary_path: str, poc_path: str) -> list[dict]:
     def _run():
         frames = []
         try:
+            escaped_binary = shlex.quote(binary_path)
             mi = gdbmi.GdbMi()
-            mi.command(f"-file-exec-and-symbols {binary_path}")
+            mi.command(f"-file-exec-and-symbols {escaped_binary}")
             mi.command("-exec-run")
-            mi.get_response()
+            mi.get_response(timeout_seconds=30)
             mi.command("-stack-list-frames")
-            resp = mi.get_response()
+            resp = mi.get_response(timeout_seconds=30)
             mi.terminate()
             if resp:
                 for msg in resp:
@@ -219,8 +227,8 @@ async def get_stack_trace(binary_path: str, poc_path: str) -> list[dict]:
                                 "line": int(frame.get("line", 0)),
                                 "args": f"({', '.join(frame.get('args', []))})",
                             })
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("GDB stack trace failed: %s", exc)
         return frames or [dict(f) for f in _scenario_for(binary_path)["stack"]]
 
     return await asyncio.to_thread(_run)
@@ -232,15 +240,17 @@ async def get_memory_region(binary_path: str, address: str) -> str:
 
     def _run():
         try:
+            escaped_binary = shlex.quote(binary_path)
             mi = gdbmi.GdbMi()
-            mi.command(f"-file-exec-and-symbols {binary_path}")
+            mi.command(f"-file-exec-and-symbols {escaped_binary}")
             mi.command("-exec-run")
-            mi.get_response()
-            mi.command(f"-data-evaluate-expression $rsp")
-            resp = mi.get_response()
+            mi.get_response(timeout_seconds=30)
+            mi.command("-data-evaluate-expression $rsp")
+            resp = mi.get_response(timeout_seconds=30)
             mi.terminate()
             return "stack"
-        except Exception:
+        except Exception as exc:
+            logger.warning("GDB memory region query failed: %s", exc)
             return "heap"
 
     return await asyncio.to_thread(_run)

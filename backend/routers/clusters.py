@@ -1,9 +1,13 @@
 import hashlib
 import json
+import logging
 import math
+import re
 from fastapi import APIRouter
 from backend.db.database import get_db
 from backend.core.groq_client import groq_chat
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/clusters", tags=["clusters"])
 
@@ -100,14 +104,13 @@ async def get_clusters():
                 temperature=0.1,
                 max_tokens=512,
             )
-            import re
             cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", result.strip(), flags=re.MULTILINE)
             match = re.search(r"\[.*\]", cleaned, re.DOTALL)
             parsed = json.loads(match.group(0) if match else cleaned)
             if isinstance(parsed, list):
                 insights = [str(s) for s in parsed[:3]]
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("Cluster insight generation failed: %s", exc)
 
     if not insights:
         cause_counts = {}

@@ -1,3 +1,4 @@
+import logging
 import os
 import shutil
 import zipfile
@@ -7,10 +8,14 @@ from fastapi import APIRouter, UploadFile, File, HTTPException
 from backend.db.database import get_db
 from backend.core.cache import db_cache
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/api/upload", tags=["upload"])
 
-UPLOAD_DIR = "backend/uploads"
-MAX_FILE_SIZE = 50 * 1024 * 1024
+UPLOAD_DIR = os.getenv("RCAI_UPLOAD_DIR", "backend/uploads")
+MAX_FILE_SIZE = int(os.getenv("RCAI_MAX_FILE_SIZE", 50 * 1024 * 1024))
+MAX_ZIP_EXTRACT_SIZE = int(os.getenv("RCAI_MAX_ZIP_EXTRACT_SIZE", 500 * 1024 * 1024))
+MAX_ZIP_FILES = int(os.getenv("RCAI_MAX_ZIP_FILES", 5000))
 ALLOWED_EXTS = {".rb", ".lua", ".tiff", ".gif", ".cgi", ".bin", ".six", ".py", ".txt", ".json", ".csv", ".md", ".zip"}
 EXT_TYPE_MAP = {
     ".rb": "ruby", ".lua": "lua", ".tiff": "tiff", ".gif": "gif",

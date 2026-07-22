@@ -1,6 +1,11 @@
+import logging
+import os
+
 import aiosqlite
 
-DB_PATH = "backend/rcai.db"
+logger = logging.getLogger(__name__)
+
+DB_PATH = os.getenv("RCAI_DB_PATH", "backend/rcai.db")
 
 
 async def get_db() -> aiosqlite.Connection:
@@ -9,6 +14,7 @@ async def get_db() -> aiosqlite.Connection:
     await db.execute("PRAGMA journal_mode=WAL")
     await db.execute("PRAGMA synchronous=NORMAL")
     await db.execute("PRAGMA cache_size=-8000")
+    await db.execute("PRAGMA busy_timeout=5000")
     return db
 
 
